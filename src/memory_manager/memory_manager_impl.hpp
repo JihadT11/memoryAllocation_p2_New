@@ -4,16 +4,19 @@
 #include <cstdint>
 #include <vector>
 #include "allocated_block.hpp"
+#include "free_block.hpp"
 
 class MemoryManagerImpl {
 
 public:
   // I'll let you fill in the return types and parameters
   void read(int id); 
-  void insert(size_t size, const std::vector<uint8_t>& input_data);
+  int insert(size_t size, const std::vector<uint8_t>& input_data);
   void update(int id, const std::vector<uint8_t>& input_data);
   void del(int id); //delete is a keyword...
   void dump();
+  MemoryManagerImpl();
+  ~MemoryManagerImpl();
 
 private:
   uint8_t* data;

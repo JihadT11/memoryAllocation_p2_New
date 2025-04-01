@@ -6,15 +6,15 @@
 
 MemoryManagerImpl::MemoryManagerImpl() {
     data = new uint8_t[65535];
-    free_blocks.push(new FreeBlock(0, 65535)); // Start with one big free block
+    free_blocks.push_back(new FreeBlock(0, 65535)); // Start with one big free block
     this->next_id = 0;
 }
 
-MemoryManagerImpl::insert(size_t size, const std::vector<uint8_t>& input_data) {
-
+int MemoryManagerImpl::insert(size_t size, const std::vector<uint8_t>& input_data) {
+    return 0;
 }
 
-MemoryManagerImpl::MemoryManagerImpl() {
+MemoryManagerImpl::~MemoryManagerImpl() {
     delete[] data;
 }
 
