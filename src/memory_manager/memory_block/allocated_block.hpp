@@ -4,6 +4,7 @@
 #include "memory_block.hpp"
 
 class AllocatedBlock: MemoryBlock {
-
+private:
+  int id;
 };
 #endif // !AllocatedBlock

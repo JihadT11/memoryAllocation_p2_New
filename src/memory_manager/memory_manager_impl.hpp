@@ -20,6 +20,7 @@ private:
   std::vector<AllocatedBlock> allocated_blocks;
   std::vector<FreeBlock> free_blocks;
   size_t nextPowerOfTwo(size_t size);  
+  int next_id;
 
 };
 #endif // !MemoryManagerImpl_H
