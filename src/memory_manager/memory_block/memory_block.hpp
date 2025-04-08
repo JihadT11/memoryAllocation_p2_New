@@ -6,7 +6,9 @@ class MemoryBlock {
     int start;
     int size;
 
-    virtual int get_start() = 0;
-    virtual int get_size() = 0;
+    virtual int get_start() const = 0;
+    virtual int get_size() const = 0;
+    virtual ~MemoryBlock() = default; // also add virtual destructor
+
 };
 #endif // !MemoryBlock

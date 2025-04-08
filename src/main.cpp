@@ -1,7 +1,13 @@
-#include "memory_manager.hpp"
-#include "file_parser.hpp"
+#include "memory_manager_impl.hpp"
+#include <vector>
 
-int main (int argc, char *argv[]) {
-  
-  return 0;
+int main() {
+    MemoryManagerImpl manager;
+
+    std::vector<uint8_t> test_data = {'H', 'e', 'l', 'l', 'o'};
+    manager.insert(test_data.size(), test_data);
+
+    manager.dump();  // You can add this next!
+
+    return 0;
 }

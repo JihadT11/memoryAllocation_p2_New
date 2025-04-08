@@ -1,8 +1,11 @@
 #ifndef MemoryManagerImpl_H
 #define MemoryManagerImpl_H
 
+#include <cstddef>
 #include <cstdint>
 #include <vector>
+#include <climits>   // for SIZE_MAX
+
 #include "allocated_block.hpp"
 #include "free_block.hpp"
 
@@ -15,15 +18,18 @@ public:
   void update(int id, const std::vector<uint8_t>& input_data);
   void del(int id); //delete is a keyword...
   void dump();
+  int findFreeBlock(size_t required_size);
   MemoryManagerImpl();
   ~MemoryManagerImpl();
+void tryCoalesce(FreeBlock* block);  // add this in private section
 
 private:
   uint8_t* data;
   std::vector<AllocatedBlock> allocated_blocks;
-  std::vector<FreeBlock> free_blocks;
+  std::vector<FreeBlock*> free_blocks;
   size_t nextPowerOfTwo(size_t size);  
   int next_id;
+
 
 };
 #endif // !MemoryManagerImpl_H
