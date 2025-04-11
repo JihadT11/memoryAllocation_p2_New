@@ -1,21 +1,25 @@
-#ifndef MemoryManager_H
-#define MemoryManager_H
+#ifndef MEMORYMANAGER_HPP
+#define MEMORYMANAGER_HPP
 
-class MemoryManagerImpl;
+#include <vector>
+#include <cstdint>
+
+class MemoryManagerImpl; // Forward declaration
 
 class MemoryManager {
 public:
-  MemoryManager();
-  ~MemoryManager();
- 
-  // this one is easy. call the methods of MemoryManagerImpl...
-  void read(); 
-  void insert();
-  void update();
-  void del(); //delete is a keyword...
-  void dump();
+    MemoryManager();
+    ~MemoryManager();
+
+    // Facade methods – these can forward the parameters to your implementation.
+    int insert(size_t size, const std::vector<uint8_t>& data);
+    void read(int id);
+    void update(int id, const std::vector<uint8_t>& data);
+    void del(int id);
+    void dump();
 
 private:
-  MemoryManagerImpl* impl;
+    MemoryManagerImpl* impl;
 };
-#endif // !MemoryManager
+
+#endif // MEMORYMANAGER_HPP

@@ -1,14 +1,24 @@
-#ifndef Command_H
-#define Command_H
+#ifndef COMMAND_HPP
+#define COMMAND_HPP
 
-#include <string>
 #include <vector>
-class Command {
-public:
-  std::string function; // Enum ?? = switch case
-  std::vector<std::string> parameters;
+#include <cstdint>
+#include <string>
 
-  Command();
-  ~Command();
+enum class CommandType {
+    INSERT,
+    READ,
+    UPDATE,
+    DELETE,
+    DUMP,
+    INVALID
 };
-#endif // !Command
+
+struct Command {
+    CommandType type = CommandType::INVALID;
+    int id = -1;              // For READ, UPDATE, DELETE commands
+    size_t size = 0;          // For INSERT commands
+    std::vector<uint8_t> data; // For INSERT and UPDATE commands
+};
+
+#endif // COMMAND_HPP

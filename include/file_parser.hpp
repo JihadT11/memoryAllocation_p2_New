@@ -1,11 +1,14 @@
-#ifndef FileParser_H
-#define FileParser_H
+#ifndef FILEPARSER_HPP
+#define FILEPARSER_HPP
 
 #include "command.hpp"
+#include <string>
 #include <vector>
 
-class FilePaser {
-  public:
-    std::vector<Command> commands;
+class FileParser {
+public:
+    // Parses the given file and returns a list of commands.
+    std::vector<Command> parseFile(const std::string& filename);
 };
-#endif // !FileParser
+
+#endif // FILEPARSER_HPP

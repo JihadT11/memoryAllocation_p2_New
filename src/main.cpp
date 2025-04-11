@@ -1,13 +1,49 @@
-#include "memory_manager_impl.hpp"
-#include <vector>
+#include <iostream>
+#include "file_parser.hpp"
+#include "memory_manager.hpp"
 
-int main() {
-    MemoryManagerImpl manager;
+int main(int argc, char** argv) {
+    if (argc < 2) {
+        std::cerr << "Usage: " << argv[0] << " <command_file.cmmd>\n";
+        return 1;
+    }
 
-    std::vector<uint8_t> test_data = {'H', 'e', 'l', 'l', 'o'};
-    manager.insert(test_data.size(), test_data);
+    // Parse the command file.
+    FileParser parser;
+    std::vector<Command> commands = parser.parseFile(argv[1]);
 
-    manager.dump();  // You can add this next!
+    // Create MemoryManager.
+    MemoryManager memManager;
 
+    // Process each command.
+    for (const Command &cmd : commands) {
+        switch (cmd.type) {
+            case CommandType::INSERT: {
+                int id = memManager.insert(cmd.size, cmd.data);
+                std::cout << "Inserted block with ID: " << id << "\n";
+                break;
+            }
+            case CommandType::READ: {
+                memManager.read(cmd.id);
+                break;
+            }
+            case CommandType::UPDATE: {
+                memManager.update(cmd.id, cmd.data);
+                break;
+            }
+            case CommandType::DELETE: {
+                memManager.del(cmd.id);
+                break;
+            }
+            case CommandType::DUMP: {
+                memManager.dump();
+                break;
+            }
+            default: {
+                std::cerr << "Invalid command encountered.\n";
+                break;
+            }
+        }
+    }
     return 0;
 }

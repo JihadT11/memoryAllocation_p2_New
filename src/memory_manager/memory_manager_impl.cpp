@@ -6,14 +6,15 @@
 #include <cstring>
 #include <vector>
 #include <climits>
+#include <algorithm>
 
 // Constructor for MemoryManagerImpl
 MemoryManagerImpl::MemoryManagerImpl() {
-    // Allocate the memory buffer of 65,535 bytes
-    data = new uint8_t[65535];
+    // Allocate the memory buffer of 65,536 bytes
+    data = new uint8_t[65536];
 
     // Initialize free block list with one big free block (the whole memory)
-    free_blocks.push_back(new FreeBlock(0, 65535));
+    free_blocks.push_back(new FreeBlock(0, 65536));
 
     // Initialize the first available ID for allocations
     next_id = 0;
@@ -146,23 +147,35 @@ void MemoryManagerImpl::tryCoalesce(FreeBlock* block) {
 }
 
 void MemoryManagerImpl::update(int id, const std::vector<uint8_t>& input_data) {
-    for (auto& block : allocated_blocks) {
-        if (block.get_id() == id) {
-            size_t start_addr = block.get_start();
-            size_t block_size = block.get_size();
-
-            if (input_data.size() > block_size) {
-                std::cerr << "Error: Input data too large for allocated block." << std::endl;
+    for (auto it = allocated_blocks.begin(); it != allocated_blocks.end(); ++it) {
+        if (it->get_id() == id) {
+            size_t start_addr = it->get_start();
+            size_t block_capacity = it->get_size();
+            
+            // Check if the new data exceeds the current block's capacity.
+            if (input_data.size() > block_capacity) {
+                std::cout << "Block " << id << " requires more space. Deleting and reinserting..." << std::endl;
+                // Remove the existing allocation and free the space.
+                del(id);
+                // Insert the new data. The insert method rounds the new size up to the next power of two.
+                int new_id = insert(input_data.size(), input_data);
+                if (new_id < 0) {
+                    std::cerr << "Reinsertion failed: no available memory." << std::endl;
+                } else {
+                    std::cout << "Block " << id << " updated by deletion and reinsertion as block " << new_id << std::endl;
+                }
                 return;
             }
-
+            
+            // If the data fits, update in place.
             memcpy(data + start_addr, input_data.data(), input_data.size());
+            std::cout << "Block " << id << " updated in place." << std::endl;
             return;
         }
     }
-
     std::cerr << "Error: Block ID not found." << std::endl;
 }
+
 
 void MemoryManagerImpl::del(int id) {
     // Step 1: Find and remove the allocated block
@@ -192,42 +205,50 @@ void MemoryManagerImpl::dump() {
     // Vector to hold pointers to all memory blocks (both allocated and free)
     std::vector<MemoryBlock*> allBlocks;
 
-    // Add allocated blocks.
-    // Note: allocated_blocks is stored by value, so we use the address of each block.
+    // Add allocated blocks (stored by value, so we take their address).
     for (auto& block : allocated_blocks) {
         allBlocks.push_back(&block);
     }
-
-    // Add free blocks.
-    // free_blocks already stores pointers to FreeBlock objects.
+    
+    // Add free blocks (which are already pointers).
     for (FreeBlock* block : free_blocks) {
         allBlocks.push_back(block);
     }
-
+    
     // Sort all blocks by their starting address.
     std::sort(allBlocks.begin(), allBlocks.end(), [](MemoryBlock* a, MemoryBlock* b) {
         return a->get_start() < b->get_start();
     });
-
+    
     // Print a header for clarity.
     std::cout << "Dumping Memory Manager State:\n";
-
+    
     // Iterate through the sorted blocks and print their details.
     for (MemoryBlock* block : allBlocks) {
         int start = block->get_start();
-        int size = block->get_size();
-
+        int blockSize = block->get_size();
+        
         // Use dynamic_cast to check if the block is an allocated block.
         AllocatedBlock* allocated = dynamic_cast<AllocatedBlock*>(block);
         if (allocated != nullptr) {
-            // Allocated block: print its ID, start address (in hex), and size (in decimal).
+            // Allocated block: print its ID, start address (in hex) and allocated capacity (in decimal)
             std::cout << "Address: 0x" << std::hex << start << std::dec
                       << " Status: ALLOCATED, ID: " << allocated->get_id()
-                      << ", Size: " << size << "\n";
+                      << ", Capacity: " << blockSize << "\n";
+            
+            // Also print the actual stored data.
+            std::cout << "  Data: ";
+            // Assumes get_actual_size() returns number of bytes stored.
+            size_t actualSize = allocated->get_actual_size();
+            for (size_t i = 0; i < actualSize; ++i) {
+                // Print each byte as an integer for readability.
+                std::cout << static_cast<int>(data[start + i]) << " ";
+            }
+            std::cout << "\n";
         } else {
-            // If not allocated, it's free.
+            // Free block: print start address and block size.
             std::cout << "Address: 0x" << std::hex << start << std::dec
-                      << " Status: FREE, Size: " << size << "\n";
+                      << " Status: FREE, Size: " << blockSize << "\n";
         }
     }
 }
