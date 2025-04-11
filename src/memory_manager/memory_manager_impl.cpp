@@ -103,7 +103,7 @@ void MemoryManagerImpl::read(int id) {
             std::cout << "Data: ";
 
             for (size_t i = 0; i < block.get_actual_size(); ++i) {
-                std::cout << static_cast<int>(data[block.get_start() + i]) << " ";
+                std::cout << static_cast<char>(data[block.get_start() + i]);
             }
 
             std::cout << std::endl;
@@ -242,7 +242,7 @@ void MemoryManagerImpl::dump() {
             size_t actualSize = allocated->get_actual_size();
             for (size_t i = 0; i < actualSize; ++i) {
                 // Print each byte as an integer for readability.
-                std::cout << static_cast<int>(data[start + i]) << " ";
+                std::cout << static_cast<char>(data[start + i]);
             }
             std::cout << "\n";
         } else {
