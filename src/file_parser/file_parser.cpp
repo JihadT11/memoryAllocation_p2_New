@@ -3,8 +3,9 @@
 #include <sstream>
 #include <iostream>
 #include <algorithm>
+#include <cctype>
 
-// Helper to tokenize a line (splitting on whitespace).
+// Helper to tokenize a line (splitting on whitespace)
 static std::vector<std::string> tokenize(const std::string &line) {
     std::istringstream iss(line);
     std::string token;
@@ -13,6 +14,22 @@ static std::vector<std::string> tokenize(const std::string &line) {
         tokens.push_back(token);
     }
     return tokens;
+}
+
+// Helper to determine if a string is a numeric value.
+// Returns true if every character is a digit (an optional '-' at start is allowed).
+static bool isNumber(const std::string &s) {
+    if (s.empty()) return false;
+    size_t start = 0;
+    if (s[0] == '-' && s.size() > 1) {
+        start = 1;
+    }
+    for (size_t i = start; i < s.size(); i++) {
+        if (!std::isdigit(s[i])) {
+            return false;
+        }
+    }
+    return true;
 }
 
 std::vector<Command> FileParser::parseFile(const std::string& filename) {
@@ -25,15 +42,15 @@ std::vector<Command> FileParser::parseFile(const std::string& filename) {
 
     std::string line;
     while (std::getline(infile, line)) {
-        // Skip empty lines and comments (e.g., starting with '#')
+        // Skip empty lines and comments (lines starting with '#')
         if (line.empty() || line[0] == '#') continue;
 
-        // Tokenize line
+        // Tokenize the line
         std::vector<std::string> tokens = tokenize(line);
         if (tokens.empty()) continue;
 
         Command cmd;
-        // Determine command type from the first token.
+        // Determine command type based on the first token (converted to uppercase)
         std::string cmdStr = tokens[0];
         std::transform(cmdStr.begin(), cmdStr.end(), cmdStr.begin(), ::toupper);
         if (cmdStr == "INSERT") {
@@ -43,12 +60,19 @@ std::vector<Command> FileParser::parseFile(const std::string& filename) {
                 continue;
             }
             cmd.size = std::stoul(tokens[1]);
-            // Convert remaining tokens into data bytes.
+            // Process each remaining token: try to convert to number, if not, treat as string.
             for (size_t i = 2; i < tokens.size(); ++i) {
-                int value = std::stoi(tokens[i]);
-                cmd.data.push_back(static_cast<uint8_t>(value));
+                if (isNumber(tokens[i])) {
+                    int value = std::stoi(tokens[i]);
+                    cmd.data.push_back(static_cast<uint8_t>(value));
+                } else {
+                    // If token is non-numeric, convert each character to its ASCII value.
+                    for (char c : tokens[i]) {
+                        cmd.data.push_back(static_cast<uint8_t>(c));
+                    }
+                }
             }
-        }
+        } 
         else if (cmdStr == "READ") {
             cmd.type = CommandType::READ;
             if (tokens.size() != 2) {
@@ -56,7 +80,7 @@ std::vector<Command> FileParser::parseFile(const std::string& filename) {
                 continue;
             }
             cmd.id = std::stoi(tokens[1]);
-        }
+        } 
         else if (cmdStr == "UPDATE") {
             cmd.type = CommandType::UPDATE;
             if (tokens.size() < 3) {
@@ -65,10 +89,16 @@ std::vector<Command> FileParser::parseFile(const std::string& filename) {
             }
             cmd.id = std::stoi(tokens[1]);
             for (size_t i = 2; i < tokens.size(); ++i) {
-                int value = std::stoi(tokens[i]);
-                cmd.data.push_back(static_cast<uint8_t>(value));
+                if (isNumber(tokens[i])) {
+                    int value = std::stoi(tokens[i]);
+                    cmd.data.push_back(static_cast<uint8_t>(value));
+                } else {
+                    for (char c : tokens[i]) {
+                        cmd.data.push_back(static_cast<uint8_t>(c));
+                    }
+                }
             }
-        }
+        } 
         else if (cmdStr == "DELETE") {
             cmd.type = CommandType::DELETE;
             if (tokens.size() != 2) {
@@ -76,15 +106,14 @@ std::vector<Command> FileParser::parseFile(const std::string& filename) {
                 continue;
             }
             cmd.id = std::stoi(tokens[1]);
-        }
+        } 
         else if (cmdStr == "DUMP") {
             cmd.type = CommandType::DUMP;
-        }
+        } 
         else {
             cmd.type = CommandType::INVALID;
             std::cerr << "Invalid command: " << tokens[0] << "\n";
         }
-
         commands.push_back(cmd);
     }
     return commands;
