@@ -100,13 +100,12 @@ void MemoryManagerImpl::read(int id) {
             std::cout << "Block ID: " << block.get_id() << "\n";
             std::cout << "Start Address: " << block.get_start() << "\n";
             std::cout << "Size: " << block.get_size() << "\n";
-            std::cout << "Data: ";
-
+           std::cout << "Data: ";
             for (size_t i = 0; i < block.get_actual_size(); ++i) {
-                std::cout << static_cast<char>(data[block.get_start() + i]);
+                std::cout << static_cast<int>(data[block.get_start() + i]) << " ";
             }
-
             std::cout << std::endl;
+
             return;
         }
     }
@@ -169,6 +168,7 @@ void MemoryManagerImpl::update(int id, const std::vector<uint8_t>& input_data) {
             
             // If the data fits, update in place.
             memcpy(data + start_addr, input_data.data(), input_data.size());
+            it->set_actual_size(input_data.size());
             std::cout << "Block " << id << " updated in place." << std::endl;
             return;
         }
